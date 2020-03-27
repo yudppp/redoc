@@ -5,6 +5,9 @@ import { compact } from 'lodash';
 import { resolve } from 'path';
 import * as webpack from 'webpack';
 
+// import * as SpeedMeasurePlugin from 'speed-measure-webpack-plugin';
+// const smp = new SpeedMeasurePlugin();
+
 const VERSION = JSON.stringify(require('../package.json').version);
 const REVISION = JSON.stringify(
   require('child_process')
@@ -17,27 +20,18 @@ function root(filename) {
   return resolve(__dirname + '/' + filename);
 }
 
-const tsLoader = env => ({
-  loader: 'ts-loader',
-  options: {
-    compilerOptions: {
-      module: env.bench ? 'esnext' : 'es2015',
-      declaration: false,
-    },
-  },
-});
-
 const babelLoader = mode => ({
   loader: 'babel-loader',
   options: {
+    sourceType: 'unambiguous',
     generatorOpts: {
       decoratorsBeforeExport: true,
     },
+    presets: [['@babel/env', { modules: false }], '@babel/react', '@babel/typescript'],
     plugins: compact([
-      ['@babel/plugin-syntax-typescript', { isTSX: true }],
-      ['@babel/plugin-syntax-decorators', { legacy: true }],
-      '@babel/plugin-syntax-dynamic-import',
-      '@babel/plugin-syntax-jsx',
+      ['@babel/plugin-proposal-decorators', { legacy: true }],
+      'babel-plugin-transform-class-properties',
+      '@babel/plugin-transform-runtime',
       [
         'babel-plugin-styled-components',
         {
@@ -45,19 +39,14 @@ const babelLoader = mode => ({
           displayName: mode !== 'production',
         },
       ],
+      mode !== 'production' ? 'react-hot-loader/babel' : undefined,
     ]),
   },
 });
 
-const babelHotLoader = {
-  loader: 'babel-loader',
-  options: {
-    plugins: ['react-hot-loader/babel'],
-  },
-};
-
 export default (env: { playground?: boolean; bench?: boolean } = {}, { mode }) => ({
   entry: [
+    'react-hot-loader/patch',
     root('../src/polyfills.ts'),
     root(
       env.playground
@@ -111,11 +100,7 @@ export default (env: { playground?: boolean; bench?: boolean } = {}, { mode }) =
       { test: [/\.eot$/, /\.gif$/, /\.woff$/, /\.svg$/, /\.ttf$/], use: 'null-loader' },
       {
         test: /\.tsx?$/,
-        use: compact([
-          mode !== 'production' ? babelHotLoader : undefined,
-          tsLoader(env),
-          babelLoader(mode),
-        ]),
+        use: babelLoader(mode),
         exclude: [/node_modules/],
       },
       {
@@ -129,17 +114,7 @@ export default (env: { playground?: boolean; bench?: boolean } = {}, { mode }) =
       },
       {
         test: /node_modules\/(swagger2openapi|reftools|oas-resolver|oas-kit-common|oas-schema-walker)\/.*\.js$/,
-        use: {
-          loader: 'ts-loader',
-          options: {
-            transpileOnly: true,
-            instance: 'ts2js-transpiler-only',
-            compilerOptions: {
-              allowJs: true,
-              declaration: false,
-            },
-          },
-        },
+        use: babelLoader(mode),
       },
     ],
   },

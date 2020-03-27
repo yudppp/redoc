@@ -2,7 +2,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "moduleResolution": "node",
-    "target": "es5",
+    "target": "esnext",
     "noImplicitAny": false,
     "noUnusedParameters": true,
     "noUnusedLocals": true,

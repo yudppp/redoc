@@ -1,5 +1,6 @@
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
+import { observer } from 'mobx-react';
 
 import { ThemeProvider } from '../../styled-components';
 import { OptionsProvider } from '../OptionsProvider';
@@ -19,6 +20,7 @@ export interface RedocProps {
   store: AppStore;
 }
 
+@observer
 export class Redoc extends React.Component<RedocProps> {
   static propTypes = {
     store: PropTypes.instanceOf(AppStore).isRequired,

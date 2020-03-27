@@ -2,7 +2,7 @@ import * as styledComponents from 'styled-components';
 
 import { ResolvedThemeInterface } from './theme';
 
-export { ResolvedThemeInterface };
+export type { ResolvedThemeInterface };
 
 const {
   default: styled,
